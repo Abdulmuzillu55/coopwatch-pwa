@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="CoopWatch: low-cost IoT monitoring of temperature and humidity in poultry houses (DHT22, NodeMCU ESP8266, ThingSpeak).">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#12392d">
+<link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="CoopWatch">
+<title>CoopWatch | IoT Temperature and Humidity Monitoring for Poultry Farms</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#faf7f0;--card:#fff;--ink:#1c2b24;--mut:#5d6b64;--line:#e6e0d2;--pri:#1f5e4a;--pri2:#2f7d63;--acc:#e0a526;--ok:#2e8b57;--warn:#d9822b;--crit:#c0392b;--hero:#12392d;--soft:#f1ece0;--chart:#1f5e4a;--chart2:#2f6fb5}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a15;--card:#17251f;--ink:#e9efe9;--mut:#9fb0a6;--line:#2a3b33;--soft:#1c2c25;--hero:#0b2219;--chart:#6fcf9f;--chart2:#7fb0ea}}
+:root[data-theme="dark"]{--bg:#0f1a15;--card:#17251f;--ink:#e9efe9;--mut:#9fb0a6;--line:#2a3b33;--soft:#1c2c25;--hero:#0b2219;--chart:#6fcf9f;--chart2:#7fb0ea}
+html{scroll-behavior:smooth;scroll-padding-top:calc(64px + env(safe-area-inset-top,0px))}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0 0 .5em}
+a{color:var(--pri2)}.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+header.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--hero);color:#fff}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:60px}.brand{font:700 20px Georgia,serif;color:#fff;text-decoration:none}.brand span{color:var(--acc)}
+.nav nav{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto}.nav nav a{color:#d6e3dc;text-decoration:none;padding:8px 12px;border-radius:8px;font-size:14px;white-space:nowrap}.nav nav a:hover{background:rgba(255,255,255,.1)}
+.ib{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
+button,a,select,input{touch-action:manipulation}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.hero{background:linear-gradient(135deg,var(--hero),#1f5e4a);color:#fff;padding:64px 0 72px}
+.hero .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(30px,5vw,50px)}.hero p{color:#d6e3dc;font-size:18px;max-width:560px}.eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--acc);font-weight:700}
+.btn{display:inline-block;border:0;border-radius:10px;padding:12px 20px;font:600 15px inherit;font-family:inherit;cursor:pointer;text-decoration:none}.b1{background:var(--acc);color:#1c1a10}.b2{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;margin-left:8px}
+.live{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px}.live .big{font:700 46px Georgia,serif}.live .row{display:flex;gap:26px}
+.pill{display:inline-block;border-radius:99px;padding:3px 12px;font-size:12px;font-weight:700;color:#fff}.ok{background:var(--ok)}.warn{background:var(--warn)}.crit{background:var(--crit)}.off{background:#7d8a83}
+section{padding:60px 0}section.alt{background:var(--soft)}.lead{color:var(--mut);max-width:720px;margin-bottom:28px}
+.grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}.lab{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.val{font:700 34px Georgia,serif}.mut{color:var(--mut)}.small{font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}
+select,input{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.seg button{background:var(--card);color:var(--ink);border:0;padding:7px 14px;cursor:pointer;font:inherit}.seg button.on{background:var(--pri);color:#fff}
+svg{display:block;width:100%;height:auto}svg text{fill:var(--mut);font-size:11px}
+.steps{counter-reset:s}.step{position:relative;padding-left:48px}.step:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--acc);color:#1c1a10;font-weight:700;display:grid;place-items:center}
+.table-scroll{max-width:100%;overflow-x:auto}.table-scroll:focus-visible{outline:3px solid var(--pri2);outline-offset:3px}.table-scroll table{min-width:520px}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:12px;text-transform:uppercase;color:var(--mut);padding:8px 6px}td{padding:8px 6px;border-top:1px solid var(--line)}.r{text-align:right}
+.alert{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px}.alert:first-child{border-top:0}
+.banner{background:rgba(224,165,38,.18);border:1px solid var(--acc);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:14px}
+.kpi{font:700 38px Georgia,serif;color:var(--pri)}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .kpi{color:var(--chart)}}:root[data-theme="dark"] .kpi{color:var(--chart)}
+footer{background:var(--hero);color:#b9cbc1;padding:36px 0;font-size:14px}footer a{color:var(--acc)}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:460px;width:92%}dialog label{display:block;margin:10px 0 4px;font-size:13px;color:var(--mut)}dialog input,dialog select{width:100%}
+#alarm{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;align-content:center;gap:10px;text-align:center;color:#fff;background:#b3001b;padding:24px}
+#alarm[hidden]{display:none}
+#alarm.flash{animation:alarmflash .9s steps(1) infinite}
+@keyframes alarmflash{0%{background:#b3001b}50%{background:#ff1f3d}}
+#alarm h2{font:900 clamp(72px,24vw,240px)/1 Georgia,serif;margin:0;letter-spacing:.05em;color:#fff}
+#alarm .at{font:700 clamp(28px,7vw,68px)/1.1 Georgia,serif}
+#alarm .am{font-size:clamp(16px,2.6vw,24px);max-width:720px;margin:0 auto}
+#alarm .as{font-size:14px;opacity:.9;min-height:1.4em}
+#alarm button{font-weight:800;font-size:22px;font-family:inherit;border:0;border-radius:12px;padding:16px 34px;background:#fff;color:#b3001b;cursor:pointer;margin-top:14px}
+.alarmbar{margin-bottom:16px}.alarmbar.on{border-color:var(--crit)}
+@media(prefers-reduced-motion:reduce){#alarm.flash{animation:none}}
+@media(max-width:820px){
+html{scroll-padding-top:110px}
+.nav .wrap{height:auto;min-height:60px;padding-top:8px;padding-bottom:8px;flex-wrap:wrap;gap:8px}
+.nav nav{order:1;flex:1 0 100%;padding-bottom:2px;scrollbar-width:none}
+.nav nav::-webkit-scrollbar{display:none}
+.hero .wrap{grid-template-columns:1fr}.hero{padding:40px 0}section{padding:44px 0}
+}
+@media(max-width:600px){
+.grid.g2,.grid.g3{grid-template-columns:minmax(0,1fr)}
+.hero .wrap>div:first-child>p:last-child{display:flex;flex-wrap:wrap;gap:10px}
+.hero .b2{margin-left:0}
+.card{padding:15px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style></head><body>
+<header class="nav"><div class="wrap"><a class="brand" href="#top">Coop<span>Watch</span></a>
+<nav aria-label="Main"><a href="#dashboard">Dashboard</a><a href="#how">How it works</a><a href="#guide">Climate guide</a><a href="#results">Results</a><a href="#cost">Cost</a><a href="#about">About</a></nav>
+<button class="ib" id="install" type="button" hidden>Install app</button><button class="ib" id="theme" aria-label="Toggle light or dark theme">Theme</button></div></header>
+
+<section class="hero" id="top"><div class="wrap"><div>
+<div class="eyebrow">IoT climate monitoring for poultry houses</div>
+<h1>Know your poultry house climate before your birds feel it.</h1>
+<p>CoopWatch tracks temperature and humidity around the clock with a low-cost DHT22 and NodeMCU ESP8266 unit, stores the data in the cloud and warns you the moment conditions leave the safe range.</p>
+<p><a class="btn b1" href="#dashboard">Open live dashboard</a><a class="btn b2" href="#how">How it works</a></p></div>
+<div class="live" aria-live="polite"><div class="lab" style="color:#9fd4bb">Right now in the house</div>
+<div class="row" style="margin:8px 0"><div><div class="big" id="hT">--</div><div class="small">Temperature</div></div><div><div class="big" id="hH">--</div><div class="small">Humidity</div></div></div>
+<span class="pill ok" id="hS">Checking...</span> <span class="small" id="hU" style="margin-left:8px"></span></div></div></section>
+
+<section id="dashboard"><div class="wrap"><h2>Live dashboard</h2>
+<p class="lead">Readings arrive from your ThingSpeak channel every 20 seconds. Choose the bird profile to judge conditions against the correct comfort range.</p>
+<div class="banner" id="mode"></div>
+<div class="bar"><label class="small mut">Bird profile <select id="prof"></select></label>
+<span class="seg" id="rng" role="group" aria-label="Time range"><button data-r="6">6 h</button><button data-r="24" class="on">24 h</button><button data-r="168">7 days</button></span>
+<label class="small"><input type="checkbox" id="cal"> Apply calibration correction</label>
+<button class="btn b1" style="padding:8px 14px" id="csv">Download CSV</button><button class="ib" style="color:var(--ink);border-color:var(--line)" id="cfg">Data source</button></div>
+<div class="card alarmbar" id="alarmCtl"><div class="lab">Critical temperature alarm (live sensor data)</div>
+<div class="bar" style="margin:10px 0 0"><label class="small">Shout ALERT at <input id="athr" type="number" min="30" max="50" step="0.5" style="width:84px"> &deg;C</label>
+<button class="btn b1" id="asnd" type="button" style="padding:8px 14px">Enable sound and notifications</button>
+<button class="ib" id="atest" type="button" style="color:var(--ink);border-color:var(--line)">Test alarm</button></div>
+<div class="small mut" id="astat" style="margin-top:8px" role="status" aria-live="polite"></div></div>
+<div class="grid g4"><div class="card"><div class="lab">Temperature</div><div id="gT"></div></div><div class="card"><div class="lab">Relative humidity</div><div id="gH"></div></div>
+<div class="card"><div class="lab">House status</div><div style="margin:10px 0"><span class="pill ok" id="st">-</span></div><div id="stm" class="small mut"></div><div class="lab" style="margin-top:14px">Comfort range</div><div id="rg" class="small"></div></div>
+<div class="card"><div class="lab">Device</div><div style="margin:10px 0"><span class="pill ok" id="dv">-</span></div><div class="small mut" id="dvm"></div><div class="lab" style="margin-top:14px">Readings in range</div><div id="cnt" class="small"></div></div></div>
+<div class="grid g2" style="margin-top:16px"><div class="card"><div class="lab">Temperature history</div><div id="cT"></div><div class="small mut" id="sT"></div></div><div class="card"><div class="lab">Humidity history</div><div id="cH"></div><div class="small mut" id="sH"></div></div></div>
+<div class="card" style="margin-top:16px"><div class="lab">Alert log (threshold crossings in the selected range)</div><div id="al"></div></div></div></section>
+
+<section class="alt" id="how"><div class="wrap"><h2>How it works</h2><p class="lead">Three layers turn a cheap sensor into a farm-wide early-warning system.</p>
+<div class="grid g3 steps"><div class="card step"><h3>Sense</h3><p class="mut">A DHT22 sensor sits one metre above the floor at bird height and measures temperature and humidity every cycle.</p></div>
+<div class="card step"><h3>Process and send</h3><p class="mut">A NodeMCU ESP8266 validates each reading, shows it on a 16x2 LCD and uploads it over Wi-Fi to ThingSpeak every 20 seconds.</p></div>
+<div class="card step"><h3>See and act</h3><p class="mut">ThingSpeak stores the data and e-mails an alert when limits are crossed. This website draws the live gauges, history and alert log.</p></div></div>
+<div class="card" style="margin-top:16px"><svg viewBox="0 0 900 120" role="img" aria-label="Data flow: DHT22 to NodeMCU to Wi-Fi to ThingSpeak to dashboard and e-mail"><g font-size="13" text-anchor="middle">
+<rect x="10" y="30" width="150" height="60" rx="10" fill="#2f7d63"/><text x="85" y="66" style="fill:#fff">DHT22 sensor</text>
+<rect x="200" y="30" width="170" height="60" rx="10" fill="#1f5e4a"/><text x="285" y="66" style="fill:#fff">NodeMCU ESP8266</text>
+<rect x="410" y="30" width="120" height="60" rx="10" fill="#e0a526"/><text x="470" y="66" style="fill:#1c1a10">Wi-Fi</text>
+<rect x="570" y="30" width="150" height="60" rx="10" fill="#e0a526"/><text x="645" y="66" style="fill:#1c1a10">ThingSpeak</text>
+<rect x="760" y="8" width="130" height="46" rx="10" fill="#2f6fb5"/><text x="825" y="36" style="fill:#fff">Web dashboard</text><rect x="760" y="66" width="130" height="46" rx="10" fill="#c0392b"/><text x="825" y="94" style="fill:#fff">E-mail alert</text></g>
+<g stroke="#8a9a92" stroke-width="2" fill="none"><path d="M160 60h38M370 60h38M530 60h38M720 50l38-18M720 70l38 18"/></g></svg></div></div></section>
+
+<section id="guide"><div class="wrap"><h2>Poultry climate guide</h2><p class="lead">Targets used by the dashboard profiles. Always follow your breed supplier's management guide for exact figures.</p>
+<div class="card"><div class="table-scroll" role="region" aria-label="Poultry climate guide table" tabindex="0"><table><tr><th>Bird stage</th><th>Temperature</th><th>Relative humidity</th><th>Risk outside range</th></tr>
+<tr><td>Day-old chicks (brooding)</td><td>32 to 35 &deg;C, lowered 2 to 3 &deg;C per week</td><td>60 to 70 %</td><td>Chilling, dehydration</td></tr>
+<tr><td>Broilers</td><td>20 to 26 &deg;C by age</td><td>50 to 70 %</td><td>Heat stress, poor feed conversion</td></tr>
+<tr><td>Laying hens</td><td>18 to 24 &deg;C</td><td>50 to 70 %</td><td>Reduced egg production</td></tr>
+<tr><td>Any age</td><td>-</td><td>Above 80 % or below 40 %</td><td>Pathogen growth; respiratory irritation, dust</td></tr></table></div></div></div></section>
+
+<section class="alt" id="results"><div class="wrap"><h2>Measured performance</h2><p class="lead">Results from the project's calibration, response-time and seven-day field tests.</p>
+<div class="grid g4"><div class="card"><div class="kpi">98.5%</div><div class="mut">mean temperature accuracy (max deviation 0.6 &deg;C)</div></div><div class="card"><div class="kpi">97.4%</div><div class="mut">mean humidity accuracy (max deviation 2.4 % RH)</div></div>
+<div class="card"><div class="kpi">8.4 s</div><div class="mut">power-up to first cloud upload</div></div><div class="card"><div class="kpi">99.2%</div><div class="mut">transmission success over 7 days (30,240 readings)</div></div></div>
+<div class="card" style="margin-top:16px"><div class="lab">Calibration: DHT22 versus reference thermo-hygrometer (project data)</div><div id="calc"></div></div></div></section>
+
+<section id="cost"><div class="wrap"><h2>Built for small and medium farms</h2><p class="lead">The complete unit costs about &#8358;18,500 (roughly US$12), against US$150 to 500 for commercial monitors.</p>
+<div class="card"><div class="table-scroll" role="region" aria-label="Project cost table" tabindex="0"><table><tr><th>Item</th><th class="r">Cost (&#8358;)</th></tr><tr><td>NodeMCU ESP8266</td><td class="r">3,500</td></tr><tr><td>DHT22 sensor module</td><td class="r">2,000</td></tr><tr><td>16x2 LCD module</td><td class="r">2,500</td></tr><tr><td>Breadboard and wires</td><td class="r">1,500</td></tr><tr><td>Resistors and potentiometer</td><td class="r">500</td></tr><tr><td>Project enclosure</td><td class="r">2,000</td></tr><tr><td>Power adapter</td><td class="r">2,500</td></tr><tr><td>Miscellaneous</td><td class="r">4,000</td></tr><tr><td><b>Total</b></td><td class="r"><b>18,500</b></td></tr></table></div></div></div></section>
+
+<footer id="about"><div class="wrap"><h3 style="color:#fff">About the project</h3><p>CoopWatch is the web component of the undergraduate project <b>IoT Based Monitoring of Temperature and Humidity in Poultry Farms</b>, Department of Electrical and Electronic Engineering, University of Science and Technology, 2026. Student: Adeyemi Oluwaseun Michael. Supervisor: Dr. Abubakar Suleiman.</p><p class="small">Demo mode shows simulated readings. Connect your own ThingSpeak channel through <b>Data source</b>. Readings are decision support only and do not replace regular physical inspection of the birds.</p></div></footer>
+<div id="alarm" hidden role="alertdialog" aria-modal="true" aria-labelledby="alarmH"><h2 id="alarmH">ALERT</h2><div class="at" id="aT"></div>
+<p class="am" id="aM"></p><div class="as" id="aS"></div><button id="aOff" type="button">Silence alarm</button></div>
+<dialog id="dlg"><form method="dialog"><h3>Data source</h3><p class="small mut">Enter a ThingSpeak channel with Field 1 = temperature and Field 2 = humidity. Leave blank for demo mode. Use a READ key only.</p>
+<label>Channel ID</label><input id="fc" inputmode="numeric" placeholder="e.g. 1234567"><label>Read API key (private channels)</label><input id="fk" autocomplete="off">
+<div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end"><button class="btn b1" value="cancel" style="background:var(--soft);color:var(--ink)">Cancel</button><button class="btn b1" id="sv" value="ok">Save</button></div></form></dialog>
+<script>
+//#LOGIC_START
+const PROF={project:{n:"Project alert limits (30 \u00B0C / 80 % RH)",t:[0,30],h:[40,80]},brood:{n:"Brooding, week 1 (32-35 \u00B0C)",t:[32,35],h:[60,70]},broiler:{n:"Broilers (20-26 \u00B0C)",t:[20,26],h:[50,70]},layer:{n:"Laying hens (18-24 \u00B0C)",t:[18,24],h:[50,70]}};
+const CAL={T:[0.9840,0.031],H:[0.9687,0.412]};
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function demoPoint(ms,rnd){const d=new Date(ms),h=d.getHours()+d.getMinutes()/60,day=Math.floor(ms/864e5),wob=Math.sin(day*1.7)*1.2,s=Math.sin(2*Math.PI*(h-9)/24);
+const g=()=>Math.sqrt(-2*Math.log(rnd()+1e-9))*Math.cos(2*Math.PI*rnd());return{t:ms,T:+(29.1+5.7*s+wob+.25*g()).toFixed(2),H:+(65-13*s-wob*1.5+.9*g()).toFixed(1)}}
+function demoSeries(hours,now,stepMin){const r=mulberry(7),out=[],n=Math.round(hours*60/stepMin);for(let i=n;i>=0;i--)out.push(demoPoint(now-i*stepMin*6e4,r));return out}
+function classify(v,[lo,hi],margin){return v>=lo&&v<=hi?"ok":(v>=lo-margin&&v<=hi+margin?"warn":"crit")}
+function status(T,H,p){const a=classify(T,p.t,2),b=classify(H,p.h,5),w={ok:0,warn:1,crit:2},k=Math.max(w[a],w[b]);return{level:["ok","warn","crit"][k],T:a,H:b}}
+function msg(T,H,p){const m=[];if(T>p.t[1])m.push("Temperature above range: increase ventilation or cooling");else if(T<p.t[0])m.push("Temperature below range: check heating and draughts");if(H>p.h[1])m.push("Humidity high: improve ventilation, check drinkers and litter");else if(H<p.h[0])m.push("Humidity low: dust risk, consider misting");return m.length?m.join(". ")+".":"All readings are within the comfort range."}
+function stats(a,k){const v=a.map(x=>x[k]);return{min:Math.min(...v),max:Math.max(...v),avg:v.reduce((s,x)=>s+x,0)/v.length}}
+function inRangePct(a,p){return a.filter(x=>x.T>=p.t[0]&&x.T<=p.t[1]&&x.H>=p.h[0]&&x.H<=p.h[1]).length/a.length*100}
+function alerts(a,p){const out=[];let prev="";for(const x of a){const T=classify(x.T,p.t,2)!=="ok"?"T":"",H=classify(x.H,p.h,5)!=="ok"?"H":"",key=T+H;if(key&&key!==prev){const s=status(x.T,x.H,p);out.push({t:x.t,level:s.level,text:(T?(x.T>p.t[1]?"Temperature high ":"Temperature low ")+x.T.toFixed(1)+" \u00B0C":"")+(T&&H?"; ":"")+(H?(x.H>p.h[1]?"Humidity high ":"Humidity low ")+x.H.toFixed(1)+" %":"")})}prev=key}return out}
+function calib(x,on){return on?{t:x.t,T:+(CAL.T[0]*x.T+CAL.T[1]).toFixed(2),H:+(CAL.H[0]*x.H+CAL.H[1]).toFixed(1)}:x}
+function parseTS(j){return(j.feeds||[]).map(f=>({t:Date.parse(f.created_at),T:parseFloat(f.field1),H:parseFloat(f.field2)})).filter(x=>isFinite(x.T)&&isFinite(x.H)&&isFinite(x.t))}
+const ALARM_DEFAULT=38,ALARM_FRESH_S=300;
+// prev: "idle" | "ringing" | "silenced". Rings when a FRESH reading reaches the limit; re-arms 1 C below it.
+function alarmNext(prev,T,ageSec,thr){if(!isFinite(T))return prev;if(T>=thr&&ageSec<=ALARM_FRESH_S)return prev==="silenced"?"silenced":"ringing";if(T<thr-1)return"idle";return prev}
+//#LOGIC_END
+const $=s=>document.querySelector(s),MEM={},LS={get(k,d){try{const v=localStorage.getItem(k);if(v!=null)return JSON.parse(v)}catch(e){}return k in MEM?MEM[k]:d},set(k,v){MEM[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const S={prof:LS.get("cw_prof","project"),range:24,cal:LS.get("cw_cal",false),ch:LS.get("cw_ch",""),key:LS.get("cw_key",""),data:[],live:false,err:"",demoReady:false};
+if(!PROF[S.prof])S.prof="project";
+const AL={state:"idle",ctx:null,thr:+LS.get("cw_thr",ALARM_DEFAULT)||ALARM_DEFAULT,T:NaN,age:0,test:false,siren:0,talk:0,ttl:0,flip:false,base:document.title,notified:false};
+function unlockAudio(){try{if(!AL.ctx)AL.ctx=new(window.AudioContext||window.webkitAudioContext)();if(AL.ctx.state==="suspended")AL.ctx.resume()}catch(e){}}
+["pointerdown","keydown","touchstart"].forEach(ev=>addEventListener(ev,()=>{unlockAudio();alarmStatus()},{passive:true}));
+function sirenBeep(){if(!AL.ctx||AL.ctx.state!=="running")return;const t=AL.ctx.currentTime;[880,660].forEach((f,i)=>{const o=AL.ctx.createOscillator(),g=AL.ctx.createGain(),s=t+i*.3;o.type="square";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.4,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.28);o.connect(g);g.connect(AL.ctx.destination);o.start(s);o.stop(s+.3)});try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}}
+function speak(){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance("Alert! Alert! Poultry house temperature is "+AL.T.toFixed(1).replace("."," point ")+" degrees Celsius. Check the birds now.");u.rate=.95;u.volume=1;speechSynthesis.speak(u)}catch(e){}}
+function ringText(){$("#aT").textContent=AL.T.toFixed(1)+" \u00B0C";$("#aM").textContent=(AL.test?"TEST ALARM. ":"")+"Temperature has reached the "+AL.thr+" \u00B0C limit. Check ventilation, cooling, drinkers and the birds immediately.";$("#aS").textContent=AL.test?"This is only a test.":("Last sensor reading "+Math.round(AL.age)+" s ago")+(AL.ctx&&AL.ctx.state==="running"?"":". Sound is blocked by the browser: tap anywhere to enable it.")}
+function ringStart(){const a=$("#alarm");a.hidden=false;a.classList.add("flash");ringText();unlockAudio();clearInterval(AL.siren);clearInterval(AL.talk);clearInterval(AL.ttl);sirenBeep();AL.siren=setInterval(sirenBeep,700);speak();AL.talk=setInterval(speak,10000);AL.ttl=setInterval(()=>{AL.flip=!AL.flip;document.title=AL.flip?"\u{1F6A8} ALERT "+AL.T.toFixed(1)+" \u00B0C":AL.base},900);
+notify("ALERT: poultry house "+AL.T.toFixed(1)+" \u00B0C",{body:"Limit "+AL.thr+" \u00B0C reached. Check the birds now.",tag:"coopwatch-alarm",renotify:true,requireInteraction:true,icon:"icons/icon-192.png",vibrate:[300,100,300]})}
+let SWREG=null;
+function notify(t,o){try{if(!window.Notification||Notification.permission!=="granted")return;if(SWREG)SWREG.showNotification(t,o).catch(()=>{});else new Notification(t,o)}catch(e){}}
+function ringStop(){$("#alarm").hidden=true;clearInterval(AL.siren);clearInterval(AL.talk);clearInterval(AL.ttl);try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}document.title=AL.base}
+function alarmEval(T,t){if(AL.test)return;const prev=AL.state;AL.T=T;AL.age=(Date.now()-t)/1000;AL.state=alarmNext(prev,T,AL.age,AL.thr);
+if(AL.state==="ringing"&&prev!=="ringing")ringStart();else if(AL.state==="ringing")ringText();else if(prev==="ringing")ringStop();alarmStatus()}
+function alarmStatus(){const e=$("#astat");if(!e)return;const snd=AL.ctx&&AL.ctx.state==="running"?"Sound ready.":"Sound locked: press \u201CEnable sound and notifications\u201D once.";
+let s;if(!S.live)s="Demo mode: the alarm watches real sensor data only. Connect your ThingSpeak channel with Data source.";else if(AL.state==="ringing")s="ALARM ACTIVE at "+AL.T.toFixed(1)+" \u00B0C.";else if(AL.state==="silenced")s="Alarm silenced; temperature is still "+AL.T.toFixed(1)+" \u00B0C. It re-arms below "+(AL.thr-1)+" \u00B0C.";else s="Armed at "+AL.thr+" \u00B0C. Checking the sensor every 10 s.";
+e.textContent=s+" "+snd;$("#alarmCtl").classList.toggle("on",AL.state==="ringing")}
+async function pollLast(){if(!S.ch||!S.live)return;try{const r=await fetch(`https://api.thingspeak.com/channels/${encodeURIComponent(S.ch)}/feeds/last.json${S.key?"?api_key="+encodeURIComponent(S.key):""}`,{cache:"no-store"});if(!r.ok)return;const f=await r.json(),x={t:Date.parse(f.created_at),T:parseFloat(f.field1),H:parseFloat(f.field2)};if(!isFinite(x.t)||!isFinite(x.T)||!isFinite(x.H))return;const l=S.data[S.data.length-1];if(!l||x.t>l.t){S.data.push(x);view()}alarmEval(x.T,x.t)}catch(e){}}
+
+const q=new URLSearchParams(location.search);if(q.get("channel")){S.ch=q.get("channel").replace(/\D/g,"");S.key=q.get("key")||""}
+const fmtT=ms=>new Date(ms).toLocaleString([],{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+function gauge(v,lab,unit,lo,hi,rng,cls){const f=Math.max(0,Math.min(1,(v-lo)/(hi-lo))),a=Math.PI*(1-f),x=100+80*Math.cos(a),y=100-80*Math.sin(a),col={ok:"var(--ok)",warn:"var(--warn)",crit:"var(--crit)"}[cls];
+const z=r=>{const aa=Math.PI*(1-Math.max(0,Math.min(1,(r-lo)/(hi-lo))));return[100+80*Math.cos(aa),100-80*Math.sin(aa)]},[x1,y1]=z(rng[0]),[x2,y2]=z(rng[1]);
+return`<svg viewBox="0 0 200 125" role="img" aria-label="${lab} ${v.toFixed(1)} ${unit}"><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="14"/><path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A80 80 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="var(--ok)" stroke-opacity=".35" stroke-width="14"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${col}"/><text x="100" y="92" text-anchor="middle" style="font:700 30px Georgia,serif;fill:var(--ink)">${v.toFixed(1)}</text><text x="100" y="112" text-anchor="middle">${unit}</text><text x="14" y="120">${lo}</text><text x="186" y="120" text-anchor="end">${hi}</text></svg>`}
+function chart(el,a,k,band,col,unit){const W=560,H=210,L=40,B=24,T=8,n=a.length,v=a.map(x=>x[k]),mn=Math.min(...v,band[0])-1,mx=Math.max(...v,band[1])+1,X=i=>L+i/(n-1)*(W-L-8),Y=y=>T+(1-(y-mn)/(mx-mn))*(H-T-B);
+let g=`<rect x="${L}" y="${Y(Math.min(band[1],mx))}" width="${W-L-8}" height="${Math.max(0,Y(Math.max(band[0],mn))-Y(Math.min(band[1],mx)))}" fill="var(--ok)" fill-opacity=".13"/>`;
+for(let i=0;i<=4;i++){const y=mn+(mx-mn)*i/4;g+=`<line x1="${L}" x2="${W-8}" y1="${Y(y)}" y2="${Y(y)}" stroke="var(--line)"/><text x="${L-5}" y="${Y(y)+4}" text-anchor="end">${y.toFixed(0)}</text>`}
+for(let i=0;i<=4;i++){const j=Math.round((n-1)*i/4);g+=`<text x="${X(j)}" y="${H-6}" text-anchor="middle">${new Date(a[j].t).toLocaleString([],S.range>24?{day:"2-digit",month:"short"}:{hour:"2-digit",minute:"2-digit"})}</text>`}
+g+=`<polyline fill="none" stroke="${col}" stroke-width="2" points="${v.map((y,i)=>X(i).toFixed(1)+","+Y(y).toFixed(1)).join(" ")}"/><line id="${el}l" y1="${T}" y2="${H-B}" stroke="var(--mut)" stroke-dasharray="3" visibility="hidden"/><text id="${el}t" y="${T+10}" style="fill:var(--ink);font-weight:700" visibility="hidden"></text>`;
+$("#"+el).innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${k==="T"?"Temperature":"Humidity"} history">${g}</svg>`;
+const svg=$("#"+el+" svg");svg.onmousemove=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W,i=Math.max(0,Math.min(n-1,Math.round((px-L)/(W-L-8)*(n-1)))),l=$("#"+el+"l"),t=$("#"+el+"t");l.setAttribute("x1",X(i));l.setAttribute("x2",X(i));l.setAttribute("visibility","visible");t.textContent=`${v[i].toFixed(1)} ${unit}  ${fmtT(a[i].t)}`;t.setAttribute("x",Math.min(X(i)+6,W-190));t.setAttribute("visibility","visible")};svg.onmouseleave=()=>{$("#"+el+"l").setAttribute("visibility","hidden");$("#"+el+"t").setAttribute("visibility","hidden")}}
+function view(){const p=PROF[S.prof],all=S.data.map(x=>calib(x,S.cal)),cut=Date.now()-S.range*36e5,a=all.filter(x=>x.t>=cut);if(a.length<3)return;const l=a[a.length-1],st=status(l.T,l.H,p),age=(Date.now()-l.t)/1000,online=S.live?age<120:true;
+$("#hT").textContent=l.T.toFixed(1)+" \u00B0C";$("#hH").textContent=l.H.toFixed(0)+" %";const lv={ok:"Optimal",warn:"Warning",crit:"Critical"};
+for(const id of["#hS","#st"]){const e=$(id);e.className="pill "+st.level;e.textContent=lv[st.level]}
+$("#hU").textContent="updated "+fmtT(l.t);$("#stm").textContent=msg(l.T,l.H,p);$("#rg").innerHTML=`${p.t[0]}-${p.t[1]} \u00B0C<br>${p.h[0]}-${p.h[1]} % RH`;
+$("#gT").innerHTML=gauge(l.T,"Temperature","\u00B0C",10,45,p.t,st.T);$("#gH").innerHTML=gauge(l.H,"Humidity","% RH",20,100,p.h,st.H);
+const d=$("#dv");d.className="pill "+(online?"ok":"off");d.textContent=online?"Online":"Offline";$("#dvm").textContent=S.live?"Last reading "+Math.round(age)+" s ago":"Demo device (simulated)";$("#cnt").textContent=inRangePct(a,p).toFixed(1)+" % of "+a.length+" readings";
+const ds=a.length>700?a.filter((_,i)=>i%Math.ceil(a.length/700)===0):a;chart("cT",ds,"T",p.t,"var(--chart)","\u00B0C");chart("cH",ds,"H",p.h,"var(--chart2)","%");
+const sT=stats(a,"T"),sH=stats(a,"H");$("#sT").textContent=`Min ${sT.min.toFixed(1)}  Max ${sT.max.toFixed(1)}  Average ${sT.avg.toFixed(1)} \u00B0C`;$("#sH").textContent=`Min ${sH.min.toFixed(0)}  Max ${sH.max.toFixed(0)}  Average ${sH.avg.toFixed(0)} % RH`;
+const al=alerts(a,p).slice(-12).reverse();$("#al").innerHTML=al.length?al.map(x=>`<div class="alert"><span class="pill ${x.level}">${x.level==="crit"?"Critical":"Warning"}</span><span>${x.text}</span><span class="mut small" style="margin-left:auto">${fmtT(x.t)}</span></div>`).join(""):'<div class="mut small" style="padding:8px 0">No threshold crossings in this range.</div>'}
+function mode(){$("#mode").innerHTML=S.live?`<b>Live data</b> from ThingSpeak channel ${S.ch}. Alarm armed at ${AL.thr} \u00B0C.`:`<b>Demo mode.</b> These readings are simulated (diurnal pattern based on the project's field-test range of 23.4 to 34.8 \u00B0C and 52 to 78 % RH). ${S.err?"<br>"+S.err:"Use <b>Data source</b> to connect a real ThingSpeak channel."}`}
+async function load(){if(S.ch){try{const mins=S.range*60,avg=S.range>6?"&average=10":"",url=`https://api.thingspeak.com/channels/${encodeURIComponent(S.ch)}/feeds.json?minutes=${mins}${avg}&results=8000${S.key?"&api_key="+encodeURIComponent(S.key):""}`,r=await fetch(url);if(!r.ok)throw new Error("HTTP "+r.status);const d=parseTS(await r.json());if(d.length<3)throw new Error("channel has too few valid readings");S.data=d;S.live=true;S.err="";mode();view();pollLast();return alarmStatus()}catch(e){S.err="Could not load channel "+S.ch+" ("+e.message+"). Showing demo data.";S.live=false;S.demoReady=false}}
+if(!S.demoReady){S.data=demoSeries(168,Date.now(),5);S.demoReady=true}mode();view()}
+function tick(){if(S.live||!S.demoReady)return;S.data.push(demoPoint(Date.now(),mulberry(Date.now()&0xffff)));if(S.data.length>2200)S.data.shift();view()}
+$("#prof").innerHTML=Object.entries(PROF).map(([k,v])=>`<option value="${k}" ${k===S.prof?"selected":""}>${v.n}</option>`).join("");$("#cal").checked=S.cal;
+$("#prof").onchange=e=>{S.prof=e.target.value;LS.set("cw_prof",S.prof);view()};$("#cal").onchange=e=>{S.cal=e.target.checked;LS.set("cw_cal",S.cal);view()};
+document.querySelectorAll("#rng button").forEach(b=>b.onclick=()=>{S.range=+b.dataset.r;document.querySelectorAll("#rng button").forEach(x=>x.classList.toggle("on",x===b));S.live?load():view()});
+$("#csv").onclick=()=>{const cut=Date.now()-S.range*36e5,rows=S.data.filter(x=>x.t>=cut).map(x=>{const c=calib(x,S.cal);return new Date(c.t).toISOString()+","+c.T+","+c.H}),b=new Blob(["timestamp,temperature_C,humidity_pct\n"+rows.join("\n")],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="coopwatch_readings.csv";a.click()};
+$("#cfg").onclick=()=>{$("#fc").value=S.ch;$("#fk").value=S.key;if($("#dlg").showModal)$("#dlg").showModal()};
+$("#sv").onclick=()=>{S.ch=$("#fc").value.replace(/\D/g,"");S.key=$("#fk").value.trim();LS.set("cw_ch",S.ch);LS.set("cw_key",S.key);S.demoReady=false;load()};
+$("#theme").onclick=()=>{const r=document.documentElement,dk=getComputedStyle(r).getPropertyValue("--bg").trim()==="#0f1a15";r.setAttribute("data-theme",dk?"light":"dark");view()};
+const CALDATA={T:[[22.5,22.8],[25,25.4],[27.5,27.9],[30,30.5],[32.5,33],[35,35.5],[37.5,38.1],[40,40.6]],H:[[45,46.1],[50,51.2],[55,56.3],[60,61.5],[65,66.7],[70,71.8],[75,76.9],[80,82.2],[85,87.4]]};
+function drawCal(){const mk=(D,lab,u,c)=>{const W=270,H=210,L=34,lo=D[0][0]-2,hi=D[D.length-1][0]+3,X=v=>L+(v-lo)/(hi-lo)*(W-L-6),Y=v=>H-24-(v-lo)/(hi-lo)*(H-34);return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${lab} calibration"><line x1="${X(lo)}" y1="${Y(lo)}" x2="${X(hi)}" y2="${Y(hi)}" stroke="var(--mut)" stroke-dasharray="4"/>${D.map(p=>`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4" fill="${c}"/>`).join("")}<text x="${W/2}" y="${H-4}" text-anchor="middle">Reference (${u})</text><text x="${W/2}" y="12" text-anchor="middle" style="fill:var(--ink);font-weight:700">${lab}</text></svg>`};$("#calc").innerHTML=`<div class="grid g2">${mk(CALDATA.T,"Temperature","\u00B0C","var(--chart)")}${mk(CALDATA.H,"Relative humidity","% RH","var(--chart2)")}</div><p class="small mut">Dashed line = ideal. The sensor reads slightly high across the range; the optional calibration correction in the dashboard removes this bias.</p>`}
+$("#athr").value=AL.thr;
+$("#athr").onchange=e=>{let v=parseFloat(e.target.value);if(!isFinite(v))v=ALARM_DEFAULT;v=Math.min(50,Math.max(30,v));AL.thr=v;e.target.value=v;LS.set("cw_thr",v);mode();alarmStatus();pollLast()};
+$("#asnd").onclick=()=>{unlockAudio();sirenBeep();try{window.Notification&&Notification.permission==="default"&&Notification.requestPermission()}catch(e){}$("#asnd").textContent="Sound enabled \u2713";alarmStatus()};
+$("#atest").onclick=()=>{unlockAudio();AL.test=true;AL.state="ringing";AL.T=AL.thr+.5;AL.age=0;ringStart()};
+$("#aOff").onclick=()=>{if(AL.test){AL.test=false;AL.state="idle"}else AL.state="silenced";ringStop();alarmStatus()};
+alarmStatus();
+let WL=null;async function keepAwake(){try{if(navigator.wakeLock&&!WL&&document.visibilityState==="visible"){WL=await navigator.wakeLock.request("screen");WL.addEventListener("release",()=>{WL=null})}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")keepAwake()});
+let deferredInstall=null;const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;if(!standalone())$("#install").hidden=false});
+addEventListener("appinstalled",()=>{deferredInstall=null;$("#install").hidden=true});
+$("#install").onclick=async()=>{if(!deferredInstall)return;deferredInstall.prompt();try{await deferredInstall.userChoice}catch(e){}deferredInstall=null;$("#install").hidden=true};
+if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!standalone()){$("#install").hidden=false;$("#install").onclick=()=>alert("To install on iPhone/iPad: tap Share, then Add to Home Screen.")}
+if("serviceWorker"in navigator&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){navigator.serviceWorker.register("sw.js").then(r=>{SWREG=r}).catch(()=>{})}
+drawCal();load();setInterval(tick,4000);setInterval(()=>{if(S.live)load()},20000);setInterval(()=>{if(S.live)pollLast()},10000);setInterval(()=>{alarmStatus();keepAwake()},5000);keepAwake();
+</script></body></html>
